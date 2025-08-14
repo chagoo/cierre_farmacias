@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Documentos</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #0d6efd;
+            --secondary-color: #f8f9fa;
+            --success-color: #198754;
+            --border-color: #dee2e6;
+            --text-color: #212529;
+            --light-text: #6c757d;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f6f9;
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+        }
+        
+        .page-header {
+            background-color: white;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 1rem 0;
+            margin-bottom: 2rem;
+        }
+        
+        .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .user-info i {
+            color: var(--primary-color);
+            font-size: 1.2rem;
+        }
+        
+        .user-badge {
+            background-color: var(--secondary-color);
+            border-radius: 5px;
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+        }
+        
+        .main-content {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .section-title i {
+            color: var(--primary-color);
+        }
+        
+        .attachment-container {
+            border: 2px dashed var(--primary-color);
+            background-color: rgba(13, 110, 253, 0.05);
+            border-radius: 8px;
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+        
+        .file-list {
+            text-align: left;
+            margin-top: 1.5rem;
+            max-height: 200px;
+            overflow-y: auto;
+            padding: 1rem;
+            background-color: white;
+            border-radius: 5px;
+            border: 1px solid var(--border-color);
+        }
+        
+        .file-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem;
+            border-bottom: 1px solid #efefef;
+        }
+        
+        .file-item:last-child {
+            border-bottom: none;
+        }
+        
+        .file-item a {
+            color: var(--primary-color);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .file-item a:hover {
+            text-decoration: underline;
+        }
+
+        .delete-file-btn {
+            color: #dc3545;
+            cursor: pointer;
+            transition: color 0.3s ease;
+            margin-left: 10px;
+        }
+
+        .delete-file-btn:hover {
+            color: #a71d2a;
+        }
+        
+        .signature-container {
+            margin-bottom: 2rem;
+        }
+        
+        .signature-item {
+            background-color: white;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+        
+        .signature-completed {
+            background-color: rgba(25, 135, 84, 0.1);
+            border-color: var(--success-color);
+        }
+        
+        .signature-disabled {
+            opacity: 0.6;
+            background-color: #f8f9fa;
+        }
+        
+        .signature-info {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .signature-label {
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+        
+        .signature-status {
+            font-size: 0.85rem;
+            color: var(--light-text);
+            font-style: italic;
+        }
+        
+        .signature-completed .signature-status {
+            color: var(--success-color);
+            font-weight: 500;
+        }
+        
+        .btn-action {
+            padding: 0.5rem 1.5rem;
+            border-radius: 5px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        .btn-primary:hover {
+            background-color: #0b5ed7;
+            border-color: #0a58ca;
+        }
+        
+        .btn-success {
+            background-color: var(--success-color);
+            border-color: var(--success-color);
+        }
+        
+        .btn-success:hover {
+            background-color: #157347;
+            border-color: #146c43;
+        }
+        
+        .form-check-input:checked {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        .form-check-label {
+            margin-left: 0.25rem;
+        }
+        
+        .signature-controls {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .footer-actions {
+            margin-top: 2rem;
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+        }
+        
+        .name-field {
+            width: 250px;
+            border-radius: 5px;
+            border: 1px solid var(--border-color);
+            padding: 0.5rem;
+            font-size: 0.9rem;
+        }
+        
+        .checkbox-group {
+            display: flex;
+            gap: 1rem;
+        }
+        
+        @media (max-width: 768px) {
+            .signature-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+            
+            .signature-controls {
+                width: 100%;
+                justify-content: space-between;
+            }
+            
+            .name-field {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Cabecera simple -->
+    <header class="page-header">
+        <div class="container">
+            <div class="header-container">
+                <h2>Gestión de Documentos</h2>
+                <div class="user-info">
+                    <div class="user-badge">
+                        <i class="fas fa-user"></i>
+                        <span>{{ session.get('email') }}</span>
+                    </div>
+                    
+                    
+                    
+                                    </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- Información del registro -->
+        <div class="alert alert-info mb-4">
+            <div class="row">
+                <div class="col-md-6">
+                    <strong><i class="fas fa-info-circle"></i> Solicitantes:</strong> 
+                    {{ correo1 }}, {{ correo2 }}, {{ correo3 }}
+                </div>
+                <div class="col-md-6">
+                    <strong><i class="fas fa-building"></i> Departamento:</strong> 
+                    {{ departamento }}
+                </div>
+            </div>
+        </div>
+
+        <!-- Formulario de carga de archivos -->
+        <div class="main-content">
+            <h3 class="section-title"><i class="fas fa-file-upload"></i> Documentos Adjuntos</h3>
+            
+            <form id="upload-form" action="{{ url_for('firmas.subir_archivo', departamento=departamento, ceco=ceco) }}" method="POST" enctype="multipart/form-data">
+                <div class="attachment-container">
+                    <button type="button" class="btn btn-primary btn-action" id="attach-button">
+                        <i class="fas fa-paperclip"></i> Seleccionar Archivos
+                    </button>
+                    
+                    <div id="file-list" class="file-list">
+                        {% if archivos %}
+                            {% for archivo in archivos %}
+                                <div class="file-item" data-filename="{{ archivo }}">
+                                    <a href="{{ url_for('firmas.descargar_archivo', ceco=ceco, departamento=departamento, filename=archivo) }}">
+                                        <i class="fas fa-file-alt"></i> {{ archivo }}
+                                    </a>
+                                    <span class="delete-file-btn" onclick="eliminarArchivo('{{ archivo }}')">
+                                        <i class="fas fa-trash"></i>
+                                    </span>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <p class="text-muted text-center">No hay archivos adjuntos</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div id="file-limit-message" class="text-danger mt-2"></div>
+                    <input type="file" name="archivo" id="file-input" multiple style="display:none;">
+                </div>
+                
+                <button type="submit" class="btn btn-success btn-action w-100">
+                    <i class="fas fa-cloud-upload-alt"></i> Subir Archivos
+                </button>
+            </form>
+        </div>
+
+        <!-- Sección de firmas -->
+         <!-- Sección de firmas -->
+<div class="main-content">
+    <h3 class="section-title"><i class="fas fa-signature"></i> Firmas de Autorización</h3>
+    
+            <form id="signatures-form" action="{{ url_for('firmas.guardar_firmas', departamento=departamento, ceco=ceco) }}" method="POST">
+        <div class="signature-container">
+            <!-- Firma Solicitante -->
+            <div class="signature-item {% if firma_solicitante %}signature-completed{% elif not can_sign_as_solicitante %}signature-disabled{% endif %}">
+                <div class="signature-info">
+                    <div class="signature-label">Firma Solicitante</div>
+                    {% if not can_sign_as_solicitante and firma_solicitante %}
+                        <div class="signature-status">Firmado por: {{ DetallesFirmaSolicitante }}</div>
+                    {% elif not can_sign_as_solicitante %}
+                        <div class="signature-status">No tiene permiso para firmar como solicitante o ya fue firmado</div>
+                    {% endif %}
+                </div>
+                <div class="signature-controls">
+                    <div class="checkbox-group">
+                        <input class="form-check-input" type="radio" name="solicitante" value="si" {% if firma_solicitante == "Verdadero" %}checked disabled{% elif not can_sign_as_solicitante %}disabled{% endif %}>
+                        <label class="form-check-label">Aprobar</label>
+                        <input class="form-check-input" type="radio" name="solicitante" value="no" {% if firma_solicitante == "Falso" %}checked disabled{% elif not can_sign_as_solicitante %}disabled{% endif %}>
+                        <label class="form-check-label">Rechazar</label>
+                    </div>
+                    <input type="text" class="name-field" name="DetallesFirmaSolicitante" 
+                        placeholder="Nombre completo" 
+                        value="{% if firma_solicitante %}{{ DetallesFirmaSolicitante if DetallesFirmaSolicitante else 'Hugo Ibarra (Solicitante)' }}{% else %}{{ user_full_name if can_sign_as_solicitante else '' }}{% endif %}" 
+                        {% if not can_sign_as_solicitante %}readonly{% endif %}>
+                </div>
+            </div>
+            
+            <!-- Firma Departamento -->
+            <div class="signature-item {% if firma_departamento %}signature-completed{% elif not can_sign_as_departamento %}signature-disabled{% endif %}">
+                <div class="signature-info">
+                    <div class="signature-label">Firma Departamento</div>
+                    {% if not can_sign_as_departamento and firma_departamento %}
+                        <div class="signature-status">Firmado por: {{ DetallesFirmaDepartamento }}</div>
+                    {% elif not can_sign_as_departamento %}
+                        <div class="signature-status">No tiene permiso para firmar como departamento o ya fue firmado</div>
+                    {% endif %}
+                </div>
+                <div class="signature-controls">
+                    <div class="checkbox-group">
+                        <input class="form-check-input" type="radio" name="departamento" value="si" {% if firma_departamento == "Verdadero" %}checked disabled{% elif not can_sign_as_departamento %}disabled{% endif %}>
+                        <label class="form-check-label">Aprobar</label>
+                        <input class="form-check-input" type="radio" name="departamento" value="no" {% if firma_departamento == "Falso" %}checked disabled{% elif not can_sign_as_departamento %}disabled{% endif %}>
+                        <label class="form-check-label">Rechazar</label>
+                    </div>
+                    <input type="text" class="name-field" name="DetallesFirmaDepartamento" 
+                        placeholder="Nombre completo" 
+                        value="{% if firma_departamento %}{{ DetallesFirmaDepartamento if DetallesFirmaDepartamento else 'Nombre (Departamento)' }}{% else %}{{ user_full_name if can_sign_as_departamento else '' }}{% endif %}" 
+                        {% if not can_sign_as_departamento %}readonly{% endif %}>
+                </div>
+            </div>
+        
+            <!-- Firma Seguridad -->
+            <div class="signature-item {% if firma_seguridad %}signature-completed{% elif not can_sign_as_seguridad %}signature-disabled{% endif %}">
+                <div class="signature-info">
+                    <div class="signature-label">Firma Seguridad</div>
+                    {% if firma_seguridad %}
+                        <div class="signature-status">Firmado por: {{ DetallesfirmaSeguridad }}</div>
+                    {% endif %}
+                </div>
+                <div class="signature-controls">
+                    <input class="form-check-input" type="radio" name="seguridad" value="si" {% if firma_seguridad == "Verdadero" %}checked disabled{% elif not can_sign_as_seguridad %}disabled{% endif %}>
+                    <label class="form-check-label">Aprobar</label>
+                    <input class="form-check-input" type="radio" name="seguridad" value="no" {% if firma_seguridad == "Falso" %}checked disabled{% elif not can_sign_as_seguridad %}disabled{% endif %}>
+                    <label class="form-check-label">Rechazar</label>
+                    <input type="text" class="name-field" name="DetallesfirmaSeguridad" 
+                        placeholder="Nombre completo" 
+                        value="{% if firma_seguridad %}{{ DetallesfirmaSeguridad if DetallesfirmaSeguridad else 'Nombre (Seguridad)' }}{% endif %}" 
+                        readonly>
+                </div>
+            </div>
+        
+            <!-- Firma Contraloría -->
+            <div class="signature-item {% if firma_gerente %}signature-completed{% elif not can_sign_as_gerente %}signature-disabled{% endif %}">
+                <div class="signature-info">
+                    <div class="signature-label">Firma Contraloría</div>
+                    {% if firma_gerente %}
+                        <div class="signature-status">Firmado por: {{ DetallesfirmaGerente }}</div>
+                    {% endif %}
+                </div>
+                <div class="signature-controls">
+                    <input class="form-check-input" type="radio" name="gerente" value="si" {% if firma_gerente == "Verdadero" %}checked disabled{% elif not can_sign_as_gerente %}disabled{% endif %}>
+                    <label class="form-check-label">Aprobar</label>
+                    <input class="form-check-input" type="radio" name="gerente" value="no" {% if firma_gerente == "Falso" %}checked disabled{% elif not can_sign_as_gerente %}disabled{% endif %}>
+                    <label class="form-check-label">Rechazar</label>
+                    <input type="text" class="name-field" name="DetallesfirmaGerente" 
+                        placeholder="Nombre completo" 
+                        value="{% if firma_gerente %}{{ DetallesfirmaGerente if DetallesfirmaGerente else 'Nombre (Gerente)' }}{% endif %}" 
+                        readonly>
+                </div>
+            </div>
+        </div>
+        <button type="submit" class="btn btn-success btn-action w-100">
+            <i class="fas fa-save"></i> Guardar Firmas
+        </button>
+    </form>
+</div>
+       
+ 
+
+        <!-- Sección para generar PDF -->
+        <div class="main-content">
+            <h3 class="section-title"><i class="fas fa-file-pdf"></i> Generar Documento</h3>
+            <p class="mb-4">Una vez completadas todas las firmas requeridas, puede generar el documento PDF final.</p>
+            
+            <button type="button" class="btn btn-primary btn-action w-100" onclick="generarPDF()">
+                <i class="fas fa-file-export"></i> Generar PDF
+            </button>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        // Función para eliminar archivos
+        function eliminarArchivo(filename) {
+            const fileList = document.getElementById('file-list');
+
+            // Confirmar eliminación
+            if (!confirm(`¿Está seguro de que desea eliminar el archivo ${filename}?`)) {
+                return;
+            }
+
+            // Enviar solicitud para eliminar archivo
+            fetch(`{{ url_for('firmas.eliminar_archivos', departamento=departamento, ceco=ceco) }}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ files: [filename] })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Eliminar archivo de la interfaz de usuario
+                    const fileItemToRemove = document.querySelector(`.file-item[data-filename="${filename}"]`);
+                    if (fileItemToRemove) {
+                        fileItemToRemove.remove();
+                    }
+
+                    // Actualizar lista de archivos si está vacía
+                    if (fileList.children.length === 0) {
+                        const noFilesMessage = document.createElement('p');
+                        noFilesMessage.className = 'text-muted text-center';
+                        noFilesMessage.textContent = 'No hay archivos adjuntos';
+                        fileList.appendChild(noFilesMessage);
+                    }
+
+                    // Opcional: mostrar mensaje de éxito
+                    alert(`Archivo ${filename} eliminado correctamente.`);
+                } else {
+                    alert(`Error al eliminar el archivo: ${data.error}`);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error al intentar eliminar el archivo.');
+            });
+        }
+
+        // Script de carga de archivos
+        document.addEventListener('DOMContentLoaded', function () {
+            const attachButton = document.getElementById('attach-button');
+            const fileInput = document.getElementById('file-input');
+            const fileList = document.getElementById('file-list');
+            const fileLimitMessage = document.getElementById('file-limit-message');
+            const maxFiles = 6;
+
+            // Crear Set con archivos existentes
+            const attachedFiles = new Set();
+
+            // Obtener archivos existentes y agregar al Set
+            const existingFiles = document.querySelectorAll('#file-list .file-item a');
+            existingFiles.forEach(function(fileLink) {
+                const fileName = fileLink.textContent.trim();
+                if (fileName) {
+                    attachedFiles.add(fileName);
+                }
+            });
+
+            console.log("Archivos existentes:", Array.from(attachedFiles));
+
+            attachButton.addEventListener('click', () => {
+                fileInput.click();
+            });
+
+            fileInput.addEventListener('change', (e) => {
+                const files = Array.from(e.target.files);
+                let noFilesMessage = fileList.querySelector('.text-muted');
+
+                if (noFilesMessage) {
+                    noFilesMessage.remove();
+                }
+
+                files.forEach((file) => {
+                    if (attachedFiles.size < maxFiles && !attachedFiles.has(file.name)) {
+                        attachedFiles.add(file.name);
+
+                        const fileItem = document.createElement('div');
+                        fileItem.className = 'file-item';
+                        fileItem.setAttribute('data-filename', file.name);
+
+                        const fileLink = document.createElement('a');
+                        fileLink.href = '#';
+                        fileLink.innerHTML = `<i class="fas fa-file-alt"></i> ${file.name}`;
+
+                        const deleteBtn = document.createElement('span');
+                        deleteBtn.className = 'delete-file-btn';
+                        deleteBtn.innerHTML = '<i class="fas fa-trash"></i>';
+                        deleteBtn.onclick = () => eliminarArchivo(file.name);
+
+                        fileItem.appendChild(fileLink);
+                        fileItem.appendChild(deleteBtn);
+                        fileList.appendChild(fileItem);
+                    }
+                });
+
+                if (attachedFiles.size >= maxFiles) {
+                    fileLimitMessage.textContent = "Se ha alcanzado el máximo de 6 archivos adjuntos.";
+                } else {
+                    fileLimitMessage.textContent = "";
+                }
+            });
+        });
+
+        
+     // Script para manejar el clic del botón "PDF"
+     function generarPDF() {
+         // Obtener los valores de departamento y ceco
+         const departamento = "{{ departamento }}";
+         const ceco = "{{ ceco }}";
+         // Mostrar loader o mensaje de espera
+         const btn = document.querySelector('.btn-primary');
+         const originalText = btn.innerHTML;
+         btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generando PDF...';
+         btn.disabled = true;
+         // Enviar una solicitud POST a la ruta /PDF/<departamento>/<ceco>
+         fetch(`/PDF/${departamento}/${ceco}`, {
+             method: 'POST',
+             headers: {
+                 'Content-Type': 'application/json',
+             },
+         })
+         .then(response => response.json())
+         .then(data => {
+             btn.innerHTML = originalText;
+             btn.disabled = false;
+             
+             if (data.success) {
+                 // Mostrar mensaje de éxito usando SweetAlert o un alert nativo
+                 alert("PDF generado correctamente.");
+                 // Redirigir a la página deseada después de aceptar el mensaje
+                 window.location.href = `/adjuntos/${departamento}/${ceco}`;
+             } else {
+                 alert("Error al generar el PDF: " + data.error);
+             }
+         })
+         .catch(error => {
+             console.error('Error:', error);
+             btn.innerHTML = originalText;
+             btn.disabled = false;
+             alert("Error al generar el PDF.");
+         });
+     }
+     // Script para manejar la carga de archivos
+     document.addEventListener('DOMContentLoaded', function () {
+         const attachButton = document.getElementById('attach-button');
+         const fileInput = document.getElementById('file-input');
+         const fileList = document.getElementById('file-list');
+         const fileLimitMessage = document.getElementById('file-limit-message');
+         const maxFiles = 6;
+         
+         // Crear el Set con los archivos existentes
+         const attachedFiles = new Set();
+         
+         // Obtener los archivos existentes y agregarlos al Set
+         const existingFiles = document.querySelectorAll('#file-list .file-item a');
+         existingFiles.forEach(function(fileLink) {
+             const fileName = fileLink.textContent.trim();
+             if (fileName) {
+                 attachedFiles.add(fileName);
+             }
+         });
+         
+         console.log("Archivos existentes:", Array.from(attachedFiles));
+         attachButton.addEventListener('click', () => {
+             fileInput.click();
+         });
+         fileInput.addEventListener('change', (e) => {
+             const files = Array.from(e.target.files);
+             let noFilesMessage = fileList.querySelector('.text-muted');
+             
+             if (noFilesMessage) {
+                 noFilesMessage.remove();
+             }
+             files.forEach((file) => {
+                 if (attachedFiles.size < maxFiles && !attachedFiles.has(file.name)) {
+                     attachedFiles.add(file.name);
+                     
+                     const fileItem = document.createElement('div');
+                     fileItem.className = 'file-item';
+                     
+                     const fileLink = document.createElement('a');
+                     fileLink.href = '#';
+                     fileLink.innerHTML = `<i class="fas fa-file-alt"></i> ${file.name}`;
+                     
+                     fileItem.appendChild(fileLink);
+                     fileList.appendChild(fileItem);
+                 }
+             });
+             if (attachedFiles.size >= maxFiles) {
+                 fileLimitMessage.textContent = "Se ha alcanzado el máximo de 6 archivos adjuntos.";
+             } else {
+                 fileLimitMessage.textContent = "";
+             }
+         });
+     });
+ </script>
+ 
+ <div class="container mt-3">
+    <p class="text-center">&copy; 2025 Farmacia Benavides</p>
+</div>
+ 
+ 
+ 
+</body>
+</html>

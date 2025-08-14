@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subdetalles</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
+    
+    <!-- jQuery y DataTables -->
+    <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
+    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+    
+    <style>
+        .selected {
+            background-color: #e0e0e0;
+        }
+        .error-message {
+            color: red;
+            margin: 10px 0;
+        }
+        .success-message {
+            color: green;
+            margin: 10px 0;
+        }
+        .disabled-row {
+            background-color: #f0f0f0;
+            color: #999;
+        }
+    </style>
+</head>
+<body onLoad="window.setTimeout('location.href=location.href', 45000)">
+
+<!-- Barra de navegación -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container-fluid">
+        <img src="/static/Imagenes/LogoBenavides.jpg" alt="Logo Benavides" style="width: 70px; height: 40px; margin-top: 10px; margin-left: 10px;">
+        <a class="navbar-brand" href="#">Sistema de Gestión Cierre Farmacia</a>
+        
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('dashboard.dashboard_home') }}">Inicio</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('dashboard.ordenes') }}">Órdenes</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('dashboard.activos') }}">Activos</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link active" href="{{ url_for('dashboard.subordenes') }}">Subórdenes</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('uploads.upload_file') }}">Subir Excel</a>
+                </li>
+            </ul>
+            <ul class="navbar-nav">
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        Bienvenido, {{ nombre }}
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+                        <li><a class="dropdown-item" href="{{ url_for('auth.logout') }}">Cerrar Sesión</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav> 
+
+<!-- Contenido principal -->
+<div class="container mt-4">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+    
+    {% if mensaje %}
+    <div class="alert {% if 'error' in mensaje.lower() %}alert-danger{% else %}alert-info{% endif %} mb-4">
+        {{ mensaje }}
+    </div>
+    {% endif %}
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h4>Subdetalles</h4>
+                    <a href="javascript:history.back()" class="btn btn-outline-primary">
+                        <i class="fas fa-arrow-left"></i> Regresar
+                    </a>
+                    <!-- Botón "Adjuntos" en la esquina superior derecha -->
+                    <button class="btn btn-secondary btn-adjuntos" onclick="abrirAdjuntos()">Adjuntos</button>
+                </div>
+                <div class="card-body">
+                    <form method="POST" id="activosForm">
+                        <table id="subdetallesTable" class="table table-bordered display">
+                            <thead>
+                                <tr>
+                                    <th>Act. Fijo</th>
+                                    <th>Clase</th>
+                                    <th>Fe. Capit.</th>
+                                    <th>Denominación</th>
+                                    <th>Orden</th>
+                                    <th>Ceco Origen</th>
+                                    <th>Ceco Destino</th>
+                                    <th>Acción</th>
+                                    <th>Seleccionar</th>
+                                    <th>Detalle</th>
+                                    <th>Departamento</th>
+                                    
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for activo in activos %}
+                                <tr class="{% if activo['FirmaSolicitante'] in ['Verdadero', 'Falso'] %}disabled-row{% endif %}">
+                                    <td>{{ activo['Act. Fijo'] }}</td>
+                                    <td>{{ activo['Clase'] }}</td>
+                                    <td>{{ activo['Fe. Capit.'] }}</td>
+                                    <td>{{ activo['Denominacion del activo fijo'] }}</td>
+                                    <td>{{ activo['Orden'] }}</td>
+                                    <td>{{ activo['Ceco'] }}</td>
+                                    <td>
+                                        <input type="text" 
+                                            name="CecoDestino_{{ activo['Act. Fijo'] }}" 
+                                            value="{{ activo['Ceco Destino'] if activo['Ceco Destino'] != None else '' }}" 
+                                            class="form-control"
+                                            {% if activo['FirmaSolicitante'] in ['Verdadero', 'Falso'] %}disabled{% endif %}>
+                                    </td>
+                                    <td>
+                                        <select class="form-select" 
+                                            name="Accion_{{ activo['Act. Fijo'] }}"
+                                            {% if activo['FirmaSolicitante'] in ['Verdadero', 'Falso'] %}disabled{% endif %}>
+                                            <option value="">Seleccione una acción</option>
+                                            <option value="Baja" {% if activo['Accion'] == "Baja" %}selected{% endif %}>Baja</option>
+                                            <option value="Pendiente" {% if activo['Accion'] == "Pendiente" %}selected{% endif %}>Pendiente</option>
+                                            <option value="Traspaso" {% if activo['Accion'] == "Traspaso" %}selected{% endif %}>Traspaso</option>
+                                        </select>
+                                    </td>
+                                    <td class="text-center">
+                                        <input type="checkbox" 
+                                            name="ActFijo" 
+                                            value="{{ activo['Act. Fijo'] }}" 
+                                            class="form-check-input"
+                                            id="check_{{ activo['Act. Fijo'] }}"
+                                            {% if activo['FirmaSolicitante'] in ['Verdadero', 'Falso'] %}disabled{% endif %}>
+                                    </td>
+                                    <td>
+                                        <a href="{{ url_for('activos_view', activo_id=activo['Act. Fijo']) }}" 
+                                        class="btn btn-primary btn-sm">
+                                            <i class="fas fa-info-circle"></i> Ver
+                                        </a>
+                                    </td>
+                                    <td>{{ activo['Departamento'] }}</td>
+                                    
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                        
+                        <div class="d-flex justify-content-end mt-3">
+                            <button type="submit" class="btn btn-success" 
+                                {% if activos and activos[0]['FirmaSolicitante'] in ['Verdadero', 'Falso'] %}disabled{% endif %}>
+                                <i class="fas fa-save"></i> Guardar Cambios Seleccionados
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container mt-3">
+    <p class="text-center">&copy; 2025 Farmacia Benavides</p>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    $(document).ready(function() {
+        // Inicializar DataTables con opciones personalizadas
+        var table = $('#subdetallesTable').DataTable({
+            "pageLength": 5,
+            "order": [[0, "asc"]],
+            "language": {
+                "lengthMenu": "Mostrar _MENU_ registros por página",
+                "info": "Mostrando página _PAGE_ de _PAGES_",
+                "infoEmpty": "No hay registros disponibles",
+                "infoFiltered": "(filtrado de _MAX_ registros)",
+                "loadingRecords": "Cargando...",
+                "processing": "Procesando...",
+                "search": "Buscar:",
+                "zeroRecords": "No se encontraron registros coincidentes",
+                "paginate": {
+                    "next": "Siguiente",
+                    "previous": "Anterior"
+                }
+            },
+            // Desactivar ordenamiento para columnas con inputs y selects
+            "columnDefs": [
+                { "orderable": false, "targets": [6, 7, 8, 9] }
+            ]
+        });
+        
+        // Agregar funcionalidad para seleccionar fila al hacer clic
+        $('#subdetallesTable tbody').on('click', 'tr', function(event) {
+            // No seleccionar la fila si se hizo clic en un botón o input
+            if (!event.target.closest('button, input, select, a')) {
+                $(this).toggleClass('selected');
+                
+                // Toggle el checkbox cuando se hace clic en la fila
+                const checkbox = $(this).find('input[type="checkbox"]');
+                if (!checkbox.prop('disabled')) {
+                    checkbox.prop('checked', !checkbox.prop('checked'));
+                }
+            }
+        });
+    });
+    
+    function abrirAdjuntos() {
+        const primeraFila = document.querySelector('tbody tr');
+        
+        if (primeraFila) {
+            const departamento = primeraFila.querySelector('td:nth-child(11)').textContent.trim();
+            const ceco = primeraFila.querySelector('td:nth-child(6)').textContent.trim();
+            window.open(`/adjuntos/${departamento}/${ceco}`, 'Adjuntos', 'width=800,height=600');
+        }
+    }
+
+    // Validación del formulario
+    document.getElementById('activosForm').addEventListener('submit', function(event) {
+        const checkboxes = document.querySelectorAll('input[name="ActFijo"]:checked:not(:disabled)');
+        
+        if (checkboxes.length === 0) {
+            event.preventDefault();
+            alert('Por favor, seleccione al menos un activo para guardar los cambios.');
+            return false;
+        }
+
+        let valid = true;
+        checkboxes.forEach(checkbox => {
+            const activoId = checkbox.value;
+            const accion = document.querySelector(`select[name="Accion_${activoId}"]:not(:disabled)`);
+            const cecoDestino = document.querySelector(`input[name="CecoDestino_${activoId}"]:not(:disabled)`);
+
+            if (accion && !accion.value) {
+                valid = false;
+                alert(`Por favor, seleccione una acción para el activo ${activoId}`);
+            }
+
+            // Solo validar CecoDestino si la acción es 'Traspaso'
+            if (accion && accion.value === 'Traspaso' && cecoDestino && !cecoDestino.value.trim()) {
+                valid = false;
+                alert(`Por favor, ingrese un CECO destino para el activo ${activoId}`);
+            }
+        });
+
+        if (!valid) {
+            event.preventDefault();
+            return false;
+        }
+    });
+</script>
+</body>
+</html>
