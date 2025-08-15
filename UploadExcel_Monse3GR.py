@@ -15,23 +15,19 @@ from email.mime.text import MIMEText
 
 import smtplib
 import logging
+from config import get_config
 
 
 
-app = Flask(__name__) 
-app.secret_key = 'Te_llore_un_rio'  # Necesaria para las sesiones
-
-# Configuración de la base de datos
-DB_SERVER = 'MPWPAS01'
-DB_NAME = 'DBBI'
-DB_USER = 'AlertDBBI'
-DB_PASSWORD = 'P4$9'
+app = Flask(__name__)
+config = get_config()
+app.config.from_object(config)
+app.secret_key = config.SECRET_KEY
 
 UPLOAD_FOLDER = 'uploads'
 ALLOWED_EXTENSIONS = {'xlsx', 'xls'}
 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-app.config['SQLALCHEMY_DATABASE_URI'] = f"mssql+pyodbc://{DB_USER}:{DB_PASSWORD}@{DB_SERVER}/{DB_NAME}?driver=ODBC+Driver+17+for+SQL+Server"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
@@ -70,8 +66,6 @@ EXPECTED_COLUMNS = [
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-
-app.secret_key = 'Te_llore_un_rio'  # Necesario para manejar sesiones
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
