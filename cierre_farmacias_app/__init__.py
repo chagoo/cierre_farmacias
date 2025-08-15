@@ -1,5 +1,11 @@
 from flask import Flask, request
-from .extensions import db, mail, babel, init_celery
+import logging
+import sentry_sdk
+from sentry_sdk.integrations.flask import FlaskIntegration
+from sentry_sdk.integrations.logging import LoggingIntegration
+
+from .extensions import db, mail, babel, init_celery, metrics
+from .utils.logging_setup import setup_logging
 from config import get_config
 
 # Import blueprints
@@ -14,9 +20,12 @@ def create_app():
     config = get_config()
     app.config.from_object(config)
 
+    setup_logging(app.config["LOG_LEVEL"])
+
     db.init_app(app)
     mail.init_app(app)
     babel.init_app(app)
+    metrics.init_app(app)
     init_celery(app)
 
     @babel.localeselector
@@ -28,5 +37,13 @@ def create_app():
     app.register_blueprint(uploads_bp)
     app.register_blueprint(reports_bp)
     app.register_blueprint(notifications_bp)
+
+    if app.config.get("SENTRY_DSN"):
+        sentry_logging = LoggingIntegration(level=logging.INFO, event_level=logging.ERROR)
+        sentry_sdk.init(
+            dsn=app.config["SENTRY_DSN"],
+            integrations=[FlaskIntegration(), sentry_logging],
+            environment=app.config.get("ENV"),
+        )
 
     return app
