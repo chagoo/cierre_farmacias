@@ -1,0 +1,1 @@
+{{ _('Se ha cargado información para el departamento %(departamento)s y CECO %(ceco)s.') % {'departamento': departamento, 'ceco': ceco} }}

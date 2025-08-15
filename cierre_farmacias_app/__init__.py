@@ -1,5 +1,5 @@
-from flask import Flask
-from .extensions import db
+from flask import Flask, request
+from .extensions import db, mail, babel, init_celery
 from config import get_config
 
 # Import blueprints
@@ -15,6 +15,13 @@ def create_app():
     app.config.from_object(config)
 
     db.init_app(app)
+    mail.init_app(app)
+    babel.init_app(app)
+    init_celery(app)
+
+    @babel.localeselector
+    def get_locale():
+        return request.accept_languages.best_match(app.config.get('LANGUAGES'))
 
     # Register blueprints
     app.register_blueprint(auth_bp)

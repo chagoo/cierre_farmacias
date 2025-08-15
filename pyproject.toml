@@ -11,6 +11,9 @@ dependencies = [
     "Flask",
     "Flask-SQLAlchemy",
     "Flask-WTF",
+    "Flask-Mail",
+    "Flask-Babel",
+    "Celery",
     "pandas",
     "python-dotenv",
 ]
