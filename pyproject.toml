@@ -21,3 +21,11 @@ dependencies = [
     "prometheus-flask-exporter",
     "sentry-sdk",
 ]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "pytest-cov",
+    "bandit",
+    "safety",
+]
