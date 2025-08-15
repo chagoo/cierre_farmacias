@@ -11,7 +11,10 @@ class Config:
     DB_USER: str = os.environ["DB_USER"]
     DB_PASSWORD: str = os.environ["DB_PASSWORD"]
     DB_TABLE: str = os.getenv("DB_TABLE", "CierreSucursales4")
-    SECRET_KEY: str = os.environ.get("APP_SECRET_KEY", "change_me")
+    # SECRET_KEY must be provided via environment variable to avoid using
+    # a hard-coded default. This value should be managed securely outside
+    # the codebase (e.g. environment variable or secrets manager).
+    SECRET_KEY: str = os.environ["APP_SECRET_KEY"]
     SQLALCHEMY_DATABASE_URI: str = (
         f"mssql+pyodbc://{DB_USER}:{DB_PASSWORD}@{DB_SERVER}/{DB_NAME}?"
         "driver=ODBC+Driver+17+for+SQL+Server"
