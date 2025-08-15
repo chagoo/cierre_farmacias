@@ -29,3 +29,7 @@ dev = [
     "bandit",
     "safety",
 ]
+
+[tool.setuptools]
+packages = ["cierre_farmacias_app"]
+py-modules = []
