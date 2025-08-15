@@ -1,0 +1,13 @@
+// Cargar los datos desde tips_data.min.js
+$.getScript("/static/js/tips_data.min.js", function() {
+    // Una vez cargados los datos, generar la tabla pivotante
+    $("#output").pivotUI(
+        $.pivotUtilities.tipsData, {
+            rows: ["sex", "smoker"],
+            cols: ["day", "time"],
+            vals: ["tip", "total_bill"],
+            aggregatorName: "Sum over Sum",
+            rendererName: "Heatmap"
+        }
+    );
+});

@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="es">
+    <!DOCTYPE html>
+    <html lang="es">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Dashboard</title>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    </head>
+    <body>
+        
+        <!-- Barra de navegación -->
+        <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+            <div class="container-fluid">
+                <img src="/static/Imagenes/LogoBenavides.jpg" alt="Logo Benavides" style="width: 70px; height: 40px; margin-top: 10px; margin-left: 10px;">
+                <a class="navbar-brand" href="#">Sistema de Gestión Cierre Farmacia  </a>
+                
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav me-auto">
+                 
+                        
+                        
+                        
+                    </ul>
+                    <ul class="navbar-nav">
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                Bienvenido, {{ nombre }}
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+                                <li><a class="dropdown-item" href="{{ url_for('logout') }}">Cerrar Sesión</a></li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script type="text/javascript">
+        google.charts.load('current', {'packages':['bar']});
+        google.charts.setOnLoadCallback(drawCharts);
+
+        function drawCharts() {
+            function drawChart(elementId) {
+                fetch('/data')
+                    .then(response => response.json())
+                    .then(data => {
+                        const departments = {};
+                        const types = new Set();
+
+                        data.slice(1).forEach(row => {
+                            const department = row[0];
+                            const count = row[1];
+                            const type = row[2];
+
+                            if (!departments[department]) {
+                                departments[department] = {};
+                            }
+                            departments[department][type] = count;
+                            types.add(type);
+                        });
+
+                        const header = ['Departamento', ...types];
+                        const newData = [header];
+
+                        for (const department in departments) {
+                            const row = [department];
+                            types.forEach(type => {
+                                row.push(departments[department][type] || 0);
+                            });
+                            newData.push(row);
+                        }
+
+                        var dataTable = google.visualization.arrayToDataTable(newData);
+
+                        var options = {
+                            chart: {
+                                title: 'Cantidad por Departamento y Tipo General',
+                                subtitle: 'Desglose por Tipo General',
+                            },
+                            bars: 'horizontal',
+                            isStacked: true
+                        };
+
+                        var chart = new google.charts.Bar(document.getElementById(elementId));
+                        chart.draw(dataTable, google.charts.Bar.convertOptions(options));
+                    })
+                    .catch(error => console.error('Error al cargar los datos:', error));
+            }
+            drawChart('barchart_material_1');
+        }
+    </script>
+    <style>
+        .chart-container {
+            display: flex;
+            justify-content: space-around;
+            align-items: flex-start;
+        }
+        .chart-container div {
+            width: 910px;
+            height: 300px;
+        }
+        .chart-row{
+            display: flex;
+        }
+        .chart-row > div{
+            width: 520%;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        </nav>
+
+    <div class="container mt-5">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h4>Panel de Control</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <div class="ard bg-info text-white">
+                                    <div class="card-body">
+                                        <h5 class="card-title"><i class="fas fa-tasks"></i>Cierre Farmacias</h5>
+                                        <p class="card-text">Consultar Cierre Farmacias</p>
+                                        <a href="{{ url_for('aplicacion') }}" class="btn btn-light">App Cierre Farmacias</a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <div class="card bg-warning">
+                                    <div class="card-body">
+                                        <h5 class="card-title"><i class="fas fa-file-upload"></i> Subir nuevo archivo Excel</h5>
+                                        <p class="card-text">Cargar un nuevo archivo Excel con datos</p>
+                                        <a href="{{ url_for('upload_file') }}" class="btn btn-light">Subir archivo</a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <div class="card text-white" style="background-color: #5705e5;">
+                                    <div class="card-body">
+                                         <h5 class="card-title"><i class="fas fa-boxes"></i> Registro de Accesos</h5>
+                                                     <p class="card-text">Administrar Accesos</p>
+                                                     <a href="{{ url_for('accesos') }}" class="btn btn-light">Accesos</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <div class="card bg-primary text-white">
+                                    <div class="card-body">
+                                        <h5 class="card-title"><i class="fas fa-clipboard-list"></i> Órdenes</h5>
+                                        <p class="card-text">Gestionar y consultar órdenes</p>
+                                        <a href="{{ url_for('ordenes') }}" class="btn btn-light">Ver órdenes</a>
+                                    </div>
+                                
+                                </div>
+                                
+                                
+                                <div class="chart-row">
+                                    <div class="chart-container">
+                                        <div id="barchart_material_1"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <div class="card bg-success text-white">
+                                    <div class="card-body">
+                                        <h5 class="card-title"><i class="fas fa-boxes"></i> Activos</h5>
+                                        <p class="card-text">Gestionar y consultar activos</p>
+                                        <a href="{{ url_for('activos') }}" class="btn btn-light">Ver activos</a>
+                                        
+                                                                               
+                                    </div>
+                                    
+                                </div>
+                                
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <div class="card bg-info text-white">
+                                    <div class="card-body">
+                                       <h5 class="card-title"><i class="fas fa-tasks"></i> Subórdenes</h5>
+                                        <p class="card-text">Gestionar y consultar subórdenes</p>
+                                        <a href="{{ url_for('subordenes') }}" class="btn btn-light">Ver subórdenes</a>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-4 mb-3">
+                                <div class="card bg-primary text-white">
+                                    <div class="card-body">
+                                        <h5 class="card-title"><i class="fas fa-clipboard-list"></i> Accesos</h5>
+                                        <p class="card-text">Gestionar y consultar Accesos</p>
+                                        <a href="{{ url_for('lista_usuarios') }}" class="btn btn-light">Edicion</a>
+                                    </div>
+                                </div>
+                            </div>
+                                        
+                            <div class="col-md-4 mb-3">
+                                <div class="card text-white" style="background-color: purple;">
+                                    <div class="card-body">
+                                        <h5 class="card-title"><i class="fas fa-boxes"></i> Firmas Seguridad-Gerencia</h5>
+                                        <p class="card-text">Administrar Firmas</p>
+                                        <a href="{{ url_for('lista_Seguridad_Gerencias') }}" class="btn btn-light">Edicion</a>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+                                <div class="card text-white" style="background-color: #03c5a5fa;">
+                                    <div class="card-body">
+                                        <h5 class="card-title"><i class="fas fa-boxes"></i> Mapa Aplicación</h5>
+                                        <p class="card-text">Tour</p>
+                                        <a href="{{ url_for('mostrar_presentacion') }}" class="btn btn-light">Ver Mapa</a>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                                                                                                                                                                                                       
+                                
+                            
+                            
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <div class="container mt-3">
+        <p class="text-center">&copy; 2025 Febrero- Santiago Vazquez / Hugo Fermin Ibarra Garza. Farmacia Benavides</p>
+    </div>
+</body>
+</html>

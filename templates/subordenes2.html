@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Órdenes</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/datatables.net-bs5@1.13.1/css/dataTables.bootstrap5.min.css">
+    <style>
+        .editable-cell {
+            position: relative;
+        }
+        .edit-input {
+            display: none;
+            width: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 10;
+        }
+        .editable-cell:hover .edit-icon {
+            display: inline-block;
+        }
+        .edit-icon {
+            display: none;
+            cursor: pointer;
+            margin-left: 5px;
+        }
+    </style>
+</head>
+<body>
+    <body>
+        <!-- Barra de navegación -->
+        <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="#">Sistema de Gestión</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav me-auto">
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('dashboard') }}">Inicio</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link active" href="{{ url_for('ordenes') }}">Órdenes</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('activos') }}">Activos</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('subordenes') }}">Subórdenes</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('upload_file') }}">Subir Excel</a>
+                        </li>
+                    </ul>
+                    <ul class="navbar-nav">
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('logout') }}">Cerrar Sesión</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+   
+   
+   
+
+    <!-- Contenido principal -->
+    <div class="container-fluid mt-4">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <div class="container-fluid mt-4">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4><i class="fas fa-clipboard-list"></i> Tabla de Subordenes</h4>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table id="tabla-subordenes" class="table table-striped table-hover">
+                            <thead>
+                                <tr>
+                                    <th rowspan="2">ID</th>
+                                    <th rowspan="2">Departamento</th>
+                                    <th rowspan="2">Ceco</th>
+                                    <th rowspan="2">Fecha Inicio</th>
+                                    <th rowspan="2">Fecha Fin</th>
+                                    <th rowspan="2">Estatus</th>
+                                    <th colspan="6" class="group-header-solicitantes">Correos Solicitantes<div class="range-label">(Correos 1-3)</div></th>
+                                    <th colspan="4" class="group-header-departamento">Correos Departamento<div class="range-label">(Correos 4-5)</div></th>
+                                    <th rowspan="2">Firma Solicitante</th>
+                                    <th rowspan="2">Detalles Firma Solicitante</th>
+                                    <th rowspan="2">Firma Departamento</th>
+                                    <th rowspan="2">Detalles Firma Departamento</th>
+                                    <th rowspan="2">Firma Seguridad</th>
+                                    <th rowspan="2">Detalles Firma Seguridad</th>
+                                    <th rowspan="2">Firma Gerente</th>
+                                    <th rowspan="2">Detalles Firma Gerente</th>
+                                    <th rowspan="2">Tipo</th>
+                                    <th rowspan="2">Acciones</th>
+                                </tr>
+                                <tr>
+                                    <th>Correo 1</th>
+                                    <th>Nivel Correo 1</th>
+                                    <th>Correo 2</th>
+                                    <th>Nivel Correo 2</th>
+                                    <th>Correo 3</th>
+                                    <th>Nivel Correo 3</th>
+                                    <th>Correo 4</th>
+                                    <th>Nivel Correo 4</th>
+                                    <th>Correo 5</th>
+                                    <th>Nivel Correo 5</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in data %}
+                                <tr data-id="{{ item.ID }}">
+                                    <td>{{ item.ID }}</td>
+                                    <td>{{ item.Departamento }}</td>
+                                    <td>{{ item.Ceco }}</td>
+                                    <td>{{ item.FechaIni }}</td>
+                                    <td>{{ item.FechaFin }}</td>
+                                    <td><span class="badge bg-{{ 'warning' if item.Estatus == 'Iniciado' else 'success' if item.Estatus == 'Completado' else 'danger' if item.Estatus == 'Cancelado' else 'secondary' }}">{{ item.Estatus }}</span></td>
+                                    <td class="editable-cell">
+                                        <span class="display-value">{{ item.Correo1 }}</span>
+                                        <input type="text" class="form-control edit-input" name="Correo1" value="{{ item.Correo1 }}">
+                                        <i class="fas fa-edit edit-icon text-primary" onclick="toggleEdit(this)"></i>
+                                    </td>
+                                    <td>{{ item.NivelCorreo1 }}</td>
+                                    <td class="editable-cell">
+                                        <span class="display-value">{{ item.Correo2 }}</span>
+                                        <input type="text" class="form-control edit-input" name="Correo2" value="{{ item.Correo2 }}">
+                                        <i class="fas fa-edit edit-icon text-primary" onclick="toggleEdit(this)"></i>
+                                    </td>
+                                    <td>{{ item.NivelCorreo2 }}</td>
+                                    <td class="editable-cell">
+                                        <span class="display-value">{{ item.Correo3 }}</span>
+                                        <input type="text" class="form-control edit-input" name="Correo3" value="{{ item.Correo3 }}">
+                                        <i class="fas fa-edit edit-icon text-primary" onclick="toggleEdit(this)"></i>
+                                    </td>
+                                    <td>{{ item.NivelCorreo3 }}</td>
+                                    <td class="editable-cell">
+                                        <span class="display-value">{{ item.Correo4 }}</span>
+                                        <input type="text" class="form-control edit-input" name="Correo4" value="{{ item.Correo4 }}">
+                                        <i class="fas fa-edit edit-icon text-primary" onclick="toggleEdit(this)"></i>
+                                    </td>
+                                    <td>{{ item.NivelCorreo4 }}</td>
+                                    <td class="editable-cell">
+                                        <span class="display-value">{{ item.Correo5 }}</span>
+                                        <input type="text" class="form-control edit-input" name="Correo5" value="{{ item.Correo5 }}">
+                                        <i class="fas fa-edit edit-icon text-primary" onclick="toggleEdit(this)"></i>
+                                    </td>
+                                    <td>{{ item.NivelCorreo5 }}</td>
+                                    <td>{{ item.FirmaSolicitante }}</td>
+                                    <td>{{ item.DetallesFirmaSolicitante }}</td>
+                                    <td>{{ item.FirmaDepartamento }}</td>
+                                    <td>{{ item.DetallesFirmaDepartamento }}</td>
+                                    <td>{{ item.FirmaSeguridad }}</td>
+                                    <td>{{ item.DetallesFirmaSeguridad }}</td>
+                                    <td>{{ item.FirmaGerente }}</td>
+                                    <td>{{ item.DetallesFirmaGerente }}</td>
+                                    <td>{{ item.Tipo }}</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-success save-changes" onclick="saveChanges(this)">
+                                            <i class="fas fa-save"></i> Guardar
+                                        </button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.1/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.1/js/dataTables.bootstrap5.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('#tabla-subordenes').DataTable({
+                language: {
+                    url: '//cdn.datatables.net/plug-ins/1.13.1/i18n/es-ES.json'
+                },
+                order: [[0, 'desc']],
+                pageLength: 25,
+                columnDefs: [
+                    { orderable: false, targets: -1 }  // Disable sorting on last column
+                ]
+            });
+        });
+
+        function toggleEdit(icon) {
+            const cell = icon.closest('.editable-cell');
+            const displayValue = cell.querySelector('.display-value');
+            const editInput = cell.querySelector('.edit-input');
+            
+            displayValue.style.display = displayValue.style.display === 'none' ? 'inline' : 'none';
+            editInput.style.display = editInput.style.display === 'none' ? 'inline-block' : 'none';
+            editInput.focus();
+        }
+
+        function saveChanges(button) {
+            const row = button.closest('tr');
+            const rowId = row.getAttribute('data-id');
+            const updates = {};
+
+            // Collect edited email values
+            ['Correo1', 'Correo2', 'Correo3', 'Correo4', 'Correo5'].forEach(field => {
+                const cell = row.querySelector(`input[name="${field}"]`);
+                if (cell) {
+                    updates[field] = cell.value;
+                }
+            });
+
+            // Send AJAX request to save changes
+            $.ajax({
+                url: '/actualizar_subordenes',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    id: rowId,
+                    updates: updates
+                }),
+                success: function(response) {
+                    // Update display values
+                    for (let field in updates) {
+                        const cell = row.querySelector(`.editable-cell input[name="${field}"]`).closest('.editable-cell');
+                        cell.querySelector('.display-value').textContent = updates[field];
+                        cell.querySelector('.edit-input').style.display = 'none';
+                        cell.querySelector('.display-value').style.display = 'inline';
+                    }
+
+                    // Show success message
+                    showTemporaryAlert('Cambios guardados exitosamente', 'success');
+                },
+                error: function(xhr) {
+                    showTemporaryAlert('Error al guardar los cambios', 'danger');
+                }
+            });
+        }
+
+        function showTemporaryAlert(message, type) {
+            const alertDiv = `
+                <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+                    ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            `;
+            $('.container-fluid.mt-4').prepend(alertDiv);
+            
+            // Automatically remove the alert after 3 seconds
+            setTimeout(() => {
+                $('.alert').alert('close');
+            }, 3000);
+        }
+    </script>
+    <div class="container mt-3">
+        <p class="text-center">&copy; 2025 Febrero- Santiago Vazquez / Hugo Fermin Ibarra Garza. Farmacia Benavides</p>
+    </div>
+</body>
+</html>
