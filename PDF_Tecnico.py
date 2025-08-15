@@ -1,23 +1,16 @@
-from sqlalchemy import create_engine, text
+from sqlalchemy import text
 from openpyxl import load_workbook
 import win32com.client
 import os
 import sys
-
-# Configuración de la base de datos
-DB_SERVER = 'MPWPAS01'
-DB_NAME = 'DBBI'
-DB_USER = 'AlertDBBI'
-DB_PASSWORD = 'P4$9'
-DB_TABLE = 'CierreSucursales4'
+from db_config import DB_TABLE, get_engine
 
 
 def get_data_from_sql(departamento, ceco):
     """
     Obtiene los datos de la base de datos usando los parámetros departamento y ceco.
     """
-    SQLALCHEMY_DATABASE_URI = f"mssql+pyodbc://{DB_USER}:{DB_PASSWORD}@{DB_SERVER}/{DB_NAME}?driver=ODBC+Driver+17+for+SQL+Server"
-    engine = create_engine(SQLALCHEMY_DATABASE_URI, echo=False)
+    engine = get_engine()
     
     query = text(f"""
             
