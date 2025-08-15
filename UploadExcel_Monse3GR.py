@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
-from flask import Flask, render_template, request, jsonify, redirect, url_for,send_from_directory, session, flash
+from flask import Flask, render_template, request, jsonify, redirect, url_for, send_from_directory, session, flash
 import pandas as pd
 from flask_sqlalchemy import SQLAlchemy
-from datetime import datetime
+from datetime import datetime, timedelta
 import os
 from functools import wraps
 from sqlalchemy import text
 import subprocess
-from datetime import date 
+from datetime import date
 from flask import redirect, url_for, render_template
 import smtplib
 from email.mime.multipart import MIMEMultipart
@@ -15,6 +15,8 @@ from email.mime.text import MIMEText
 
 import smtplib
 import logging
+from werkzeug.utils import secure_filename
+from flask_wtf import CSRFProtect
 from config import get_config
 
 
@@ -22,15 +24,31 @@ from config import get_config
 app = Flask(__name__)
 config = get_config()
 app.config.from_object(config)
-app.secret_key = config.SECRET_KEY
-
-UPLOAD_FOLDER = 'uploads'
-ALLOWED_EXTENSIONS = {'xlsx', 'xls'}
-
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app.config['SECRET_KEY'] = config.SECRET_KEY
+app.config['UPLOAD_FOLDER'] = 'uploads'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16 MB upload limit
+app.config['SESSION_COOKIE_HTTPONLY'] = True
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+app.permanent_session_lifetime = timedelta(minutes=30)
+
+csrf = CSRFProtect(app)
 
 db = SQLAlchemy(app)
+
+logging.basicConfig(
+    filename='access.log',
+    level=logging.INFO,
+    format='%(asctime)s %(levelname)s: %(message)s'
+)
+
+login_attempts = {}
+LOCKOUT_THRESHOLD = 5
+LOCKOUT_TIME = 900  # 15 minutes
+
+ROLE_MAP = {2: 'admin'}
+
+ALLOWED_EXTENSIONS = {'xlsx', 'xls'}
 
 # Función para verificar si un usuario está logueado
 def login_required(f):
@@ -42,11 +60,11 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
-# Función para verificar si un usuario tiene nivel de acceso 2
+# Simple role-based access control decorator
 def nivel_acceso_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        if session.get('nivel_acceso') != 2:
+        if 'admin' not in session.get('roles', []):
             flash('No tiene permisos para acceder a esta página', 'danger')
             return redirect(url_for('login'))
         return f(*args, **kwargs)
@@ -70,42 +88,63 @@ def allowed_file(filename):
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        username = request.form.get('username')
-        password = request.form.get('password')
-        
-        # Consultar la base de datos para verificar las credenciales
+        username = request.form.get('username', '').strip()
+        password = request.form.get('password', '').strip()
+
+        if not username or not password:
+            flash('Usuario y contraseña son obligatorios', 'danger')
+            return render_template('login.html')
+
+        now = datetime.now().timestamp()
+        attempt = login_attempts.get(username, {'count': 0, 'time': 0})
+        if attempt['count'] >= LOCKOUT_THRESHOLD and now - attempt['time'] < LOCKOUT_TIME:
+            flash('Cuenta bloqueada temporalmente. Intente más tarde.', 'danger')
+            logging.warning(f'Usuario bloqueado por múltiples intentos fallidos: {username}')
+            return render_template('login.html')
+
         query = text("""
         SELECT [Usuario], [Password], [Nivel Acceso], [Nombre], [Apellido Paterno],[Correo]
         FROM [DBBI].[dbo].[CierreSucursales_Control_Accesos_Web]
         WHERE [Usuario] = :username AND [Password] = :password
         """)
-        
+
         try:
-            # Usar la forma correcta para ejecutar consultas en SQLAlchemy
             with db.engine.connect() as conn:
                 result = conn.execute(query, {'username': username, 'password': password}).fetchone()
-            
+
             if result:
-                nivel_acceso = int(result[2])  # Convertir a entero
-                
+                nivel_acceso = int(result[2])
+
                 if nivel_acceso == 2:
+                    session.clear()
                     session['user_id'] = result[0]
                     session['nombre_completo'] = f"{result[3]} {result[4]}"
                     session['nivel_acceso'] = nivel_acceso
-                    session['email'] = result[5]  # Guardar el correo en la sesión
+                    session['roles'] = [ROLE_MAP.get(nivel_acceso, 'user')]
+                    session['email'] = result[5]
+                    session.permanent = True
+                    login_attempts.pop(username, None)
+                    logging.info(f'Usuario {username} inició sesión correctamente')
                     return redirect(url_for('dashboard'))
                 else:
                     flash('No tiene permisos para acceder al sistema', 'danger')
             else:
                 flash('Usuario o contraseña incorrectos', 'danger')
+                attempt['count'] += 1
+                attempt['time'] = now
+                login_attempts[username] = attempt
+                logging.warning(f'Intento fallido de inicio de sesión para usuario {username}')
         except Exception as e:
+            logging.error(f'Error en login para usuario {username}: {str(e)}')
             flash(f'Error: {str(e)}', 'danger')
-    
+
     return render_template('login.html')
 
 @app.route('/logout')
 def logout():
+    user = session.get('user_id')
     session.clear()
+    logging.info(f'Usuario {user} cerró sesión')
     return redirect(url_for('login'))
 
 @app.route('/')
@@ -114,11 +153,10 @@ def index():
 
 @app.route('/dashboard')
 def dashboard():
-    if 'user_id' in session and session.get('nivel_acceso') == 2:
+    if 'user_id' in session and 'admin' in session.get('roles', []):
         return render_template('dashboard2.html')
-    else:
-        flash('Acceso no autorizado', 'danger')
-        return redirect(url_for('login'))
+    flash('Acceso no autorizado', 'danger')
+    return redirect(url_for('login'))
 
 
 def send_notification_email(ceco, departamento):
@@ -312,6 +350,7 @@ def send_notification_email(ceco, departamento):
 
 
 # Modificar la función de upload_file para llamar a la función de notificación
+@csrf.exempt
 @app.route('/upload', methods=['GET', 'POST'])
 @login_required
 @nivel_acceso_required
@@ -322,15 +361,17 @@ def upload_file():
         
         file = request.files['file']
         tipo_general = request.form.get('tipo_general')
-        
+
         if file.filename == '':
             return jsonify({'error': 'No se seleccionó ningún archivo'}), 400
-        
+
         if not tipo_general:
             return jsonify({'error': 'Debe seleccionar un Tipo General (Baja o Traspaso)'}), 400
-        
+
         if file and allowed_file(file.filename):
             try:
+                filename = secure_filename(file.filename)
+
                 # Leer el Excel
                 df = pd.read_excel(file)
                 
@@ -344,13 +385,21 @@ def upload_file():
                         'missing_columns': missing_columns
                     }), 400
                 
+                # Validar tipos de datos básicos
+                NUMERIC_COLUMNS = ['Val. Cont.', 'Orden', 'Nivel Correo 1',
+                                   'Nivel Correo 2', 'Nivel Correo 3',
+                                   'Nivel Correo 4', 'Nivel Correo 5']
+                for col in NUMERIC_COLUMNS:
+                    if col in df.columns and not pd.api.types.is_numeric_dtype(df[col]):
+                        return jsonify({'error': f'La columna {col} debe ser numérica'}), 400
+
                 # Validar que si Estatus_General es "Iniciado", se haya seleccionado Tipo_General
                 if 'Estatus_General' in df.columns:
                     if any(df['Estatus_General'].astype(str).str.strip() == 'Iniciado') and not tipo_general:
                         return jsonify({'error': 'Debe seleccionar un Tipo General cuando el Estatus es "Iniciado"'}), 400
-                
+
                 # Preparar datos adicionales
-                filename_without_ext = os.path.splitext(file.filename)[0]
+                filename_without_ext = os.path.splitext(filename)[0]
                 current_date = datetime.now().strftime("%d %B %Y")
                 estatus_general = 'Iniciado'
                 Accion = 'Pendiente'
@@ -389,6 +438,7 @@ def upload_file():
     return render_template('index_excel_Monse5.html')
 
 # Nueva ruta específica para enviar notificaciones (opcional)
+@csrf.exempt
 @app.route('/send_notifications', methods=['POST'])
 @login_required
 @nivel_acceso_required
@@ -1463,8 +1513,12 @@ def descargar(departamento, ceco, filename):
         if not resultados:
             return jsonify({'error': 'No se encontró la ruta en la base de datos'}), 404
 
-        folder_path = resultados[0][0].strip()
-        folder_path = os.path.normpath(folder_path)
+        folder_path = os.path.normpath(resultados[0][0].strip())
+        base_path = os.path.normpath('P:/UPLOAD')
+        filename = secure_filename(filename)
+
+        if os.path.commonpath([folder_path, base_path]) != base_path:
+            return jsonify({'error': 'Ruta no permitida'}), 400
 
         if not os.path.exists(folder_path):
             return jsonify({'error': f'La ruta no existe: {folder_path}'}), 404
@@ -1475,6 +1529,7 @@ def descargar(departamento, ceco, filename):
         return jsonify({'error': str(e)}), 500
 
 # Ruta para subir archivos
+@csrf.exempt
 @app.route('/subir/<departamento>/<ceco>', methods=['POST'])
 @login_required
 def subir(departamento, ceco):
@@ -1483,6 +1538,7 @@ def subir(departamento, ceco):
     archivo = request.files['archivo']
     if archivo.filename == '':
         return 'No selected file', 400
+    filename = secure_filename(archivo.filename)
 
     try:
         query = text("""
@@ -1497,17 +1553,22 @@ def subir(departamento, ceco):
         if not resultados:
             return 'No se encontró una ruta válida en la base de datos', 400
 
-        folder_path = resultados[0][0].strip()
+        folder_path = os.path.normpath(resultados[0][0].strip())
+        base_path = os.path.normpath('P:/UPLOAD')
+        if os.path.commonpath([folder_path, base_path]) != base_path:
+            return 'Ruta no permitida', 400
+
         if not os.path.exists(folder_path):
             os.makedirs(folder_path)
 
-        archivo.save(os.path.join(folder_path, archivo.filename))
+        archivo.save(os.path.join(folder_path, filename))
         return redirect(url_for('adjuntos', departamento=departamento, ceco=ceco))
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
 # Ruta para generar PDF
+@csrf.exempt
 @app.route('/PDF/<departamento>/<ceco>', methods=['POST'])
 @login_required
 def generar_pdf(departamento, ceco):
@@ -1849,8 +1910,7 @@ def actualizar_Seguridad_Gerencia():
             # En caso de error
             return jsonify({'success': False, 'message': f'Error: {str(e)}'}), 500
 
-# Configuración de la carpeta de carga
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
 
 
 #################################################Tour de presentacion de la APP####################################################
@@ -1858,8 +1918,6 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 
 # Configurar logging para mejor depuración
-logging.basicConfig(level=logging.DEBUG, 
-                    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
 

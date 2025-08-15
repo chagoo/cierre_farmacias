@@ -10,5 +10,7 @@ authors = [{name = "Equipo"}]
 dependencies = [
     "Flask",
     "Flask-SQLAlchemy",
+    "Flask-WTF",
     "pandas",
+    "python-dotenv",
 ]
