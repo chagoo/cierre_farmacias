@@ -1639,7 +1639,10 @@ def accesos():
         # Verificar si el correo ya existe usando SQL directo
         try:
             conn = db.engine.connect()
-            result = conn.execute(text(f"SELECT Correo FROM CierreSucursales_Control_Accesos_Web WHERE Correo = '{correo}'"))
+            result = conn.execute(
+                text("SELECT Correo FROM CierreSucursales_Control_Accesos_Web WHERE Correo = :correo"),
+                {"correo": correo},
+            )
             usuario_existente = result.fetchone()
             conn.close()
             

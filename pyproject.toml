@@ -16,4 +16,5 @@ dependencies = [
     "Celery",
     "pandas",
     "python-dotenv",
+    "alembic",
 ]
