@@ -9,7 +9,11 @@ db = SQLAlchemy()
 mail = Mail()
 babel = Babel()
 celery = Celery(__name__)
-metrics = PrometheusMetrics()
+# Configure Prometheus metrics without binding to an app yet. This allows the
+# metrics exporter to be initialized later inside the application factory via
+# ``metrics.init_app(app)`` without requiring an app object at import time.
+# See https://github.com/rycus86/prometheus_flask_exporter for details.
+metrics = PrometheusMetrics.for_app_factory()
 
 
 def init_celery(app):
