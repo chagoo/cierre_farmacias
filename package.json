@@ -1,0 +1,20 @@
+{
+  "name": "cierre_farmacias_frontend",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Gestion de recursos estáticos para cierre_farmacias",
+  "scripts": {
+    "build:css": "cssnano static/css/login.css static/css/login.min.css",
+    "build:js": "terser static/js/script.js -c -m -o static/js/script.min.js",
+    "build": "npm run build:css && npm run build:js"
+  },
+  "dependencies": {
+    "@fortawesome/fontawesome-free": "^6.5.2",
+    "bootstrap": "^5.3.3",
+    "jquery": "^3.7.1"
+  },
+  "devDependencies": {
+    "cssnano": "^5.1.15",
+    "terser": "^5.31.1"
+  }
+}
