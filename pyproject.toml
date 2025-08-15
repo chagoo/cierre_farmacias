@@ -1,0 +1,14 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cierre_farmacias"
+version = "0.1.0"
+description = "Aplicación modularizada de cierre de farmacias"
+authors = [{name = "Equipo"}]
+dependencies = [
+    "Flask",
+    "Flask-SQLAlchemy",
+    "pandas",
+]
