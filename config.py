@@ -37,11 +37,18 @@ class Config:
     LANGUAGES: list[str] = ["es", "en"]
     BABEL_DEFAULT_LOCALE: str = os.getenv("BABEL_DEFAULT_LOCALE", "es")
 
+    # Logging and monitoring
+    ENV: str = os.getenv("ENV", "development")
+    LOG_LEVEL: str = os.getenv("LOG_LEVEL", "INFO")
+    SENTRY_DSN: str | None = os.getenv("SENTRY_DSN")
+
 class DevelopmentConfig(Config):
     DEBUG = True
+    LOG_LEVEL: str = os.getenv("LOG_LEVEL", "DEBUG")
 
 class ProductionConfig(Config):
     DEBUG = False
+    LOG_LEVEL: str = os.getenv("LOG_LEVEL", "INFO")
 
 CONFIG_MAP = {
     "development": DevelopmentConfig,

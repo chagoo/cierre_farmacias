@@ -17,4 +17,7 @@ dependencies = [
     "pandas",
     "python-dotenv",
     "alembic",
+    "python-json-logger",
+    "prometheus-flask-exporter",
+    "sentry-sdk",
 ]
