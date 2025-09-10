@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista de Ordenes por CeCo</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
+    
+    <!-- jQuery y DataTables -->
+    <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
+    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+</head>
+<body onLoad="window.setTimeout('location.href=location.href', 45000)">
+    
+    <!-- Barra de navegación -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container-fluid">
+            <img src="/static/Imagenes/LogoBenavides.jpg" alt="Logo Benavides" style="width: 70px; height: 40px; margin-top: 10px; margin-left: 10px;">
+            <a class="navbar-brand" href="#">Sistema de Gestión Cierre Farmacia</a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/dashboard">Inicio</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/ordenes">Órdenes</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/activos">Activos</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/subordenes">Subórdenes</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/upload">Subir Excel</a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            Bienvenido, {{ nombre }}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+                            <li><a class="dropdown-item" href="/logout">Cerrar Sesión</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Contenido principal -->
+    <div class="container mt-4">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h4>Lista de Ordenes por CeCo</h4>
+                    </div>
+                    <div class="card-body">
+                        <table id="ordenesTable" class="table table-bordered display">
+                            <thead>
+                                <tr>
+                                    <th>Orden Ceco</th>
+                                    <th>Fecha Ini.</th>
+                                    <th>Fecha Fin</th>
+                                    <th>Estatus</th>
+                                    <th>Tipo</th>
+                                    <th>Borrar</th>
+                                    <th>Detalle</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for orden in ordenes %}
+                                <tr>
+                                    <td>{{ orden.orden_ceco }}</td>
+                                    <td>{{ orden.FechaIni }}</td>
+                                    <td>{{ orden.FechaFin }}</td>
+                                    <td>{{ orden.Estatus_General }}</td>
+                                    <td>{{ orden.Tipo_General }}</td>
+                                    <td>
+                                        <form action="/borrar/{{ orden.orden_ceco }}" method="POST" style="display: inline;">
+                                            <button type="submit" class="btn btn-danger btn-sm"><i class="fas fa-trash"></i> Borrar</button>
+                                        </form>
+                                    </td>
+                                    <td>
+                                        <a href="/detalles/{{ orden.orden_ceco }}" class="btn btn-primary btn-sm"><i class="fas fa-info-circle"></i> Detalle</a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container mt-3">
+    {% include 'partials/footer.html' %}
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('#ordenesTable').DataTable({
+                "pageLength": 5,
+                "order": [[0, "asc"]],
+                "language": {
+                    "lengthMenu": "Mostrar _MENU_ registros por página",
+                    "info": "Mostrando página _PAGE_ de _PAGES_",
+                    "infoEmpty": "No hay registros disponibles",
+                    "infoFiltered": "(filtrado de _MAX_ registros)",
+                    "loadingRecords": "Cargando...",
+                    "processing": "Procesando...",
+                    "search": "Buscar:",
+                    "zeroRecords": "No se encontraron registros coincidentes",
+                    "paginate": {
+                        "next": "Siguiente",
+                        "previous": "Anterior"
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
