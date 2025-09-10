@@ -44,6 +44,14 @@ set FLASK_DEBUG=1 && start_app.bat
 python app.py
 ```
 
+Las siguientes variables de entorno son **obligatorias** (no tienen valores por defecto) y la aplicación se detendrá si falta alguna:
+
+- `DB_SERVER`
+- `DB_NAME`
+- `DB_USER`
+- `DB_PASSWORD`
+- `APP_SECRET_KEY`
+
 La app toma variables de entorno opcionales:
 - `APP_HOST` (default `0.0.0.0`)
 - `APP_PORT` (default `5020`)
@@ -57,7 +65,7 @@ $env:APP_HOST="10.30.45.88"; $env:APP_PORT="5020"; python app.py
 El archivo `app.py` carga automáticamente un `.env` si está presente (usando `python-dotenv`).
 
 ## Notas de Seguridad
-Configurar credenciales y secretos en variables de entorno o archivo `.env` (no versionado):
+Configurar credenciales y secretos en variables de entorno o archivo `.env` (no versionado). Estas variables son obligatorias y no tienen valores por defecto:
 ```
 DB_SERVER=MPWPAS01
 DB_NAME=DBBI
