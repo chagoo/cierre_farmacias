@@ -43,6 +43,15 @@ DB_PASSWORD = os.getenv('DB_PASSWORD')
 UPLOAD_FOLDER = 'uploads'
 ALLOWED_EXTENSIONS = {'xlsx', 'xls'}
 
+# Rutas base configurables para scripts y almacenamiento
+SCRIPT_BASE_PATH = os.getenv('SCRIPT_BASE_PATH', 'P:/CierreFarmacias')
+UPLOAD_BASE_PATH = os.getenv('UPLOAD_BASE_PATH', 'P:/UPLOAD')
+app.config['SCRIPT_BASE_PATH'] = SCRIPT_BASE_PATH
+app.config['UPLOAD_BASE_PATH'] = UPLOAD_BASE_PATH
+for path, name in [(SCRIPT_BASE_PATH, 'SCRIPT_BASE_PATH'), (UPLOAD_BASE_PATH, 'UPLOAD_BASE_PATH')]:
+        if not os.path.exists(path):
+                app.logger.warning(f"La ruta configurada en {name} no existe: {path}")
+
 # Token opcional para habilitar la página de migración vía URL (?token=...)
 MIGRATION_TOKEN = os.getenv('MIGRATION_TOKEN', '')
 ADMIN_BOOTSTRAP_TOKEN = os.getenv('ADMIN_BOOTSTRAP_TOKEN', '')
@@ -1200,13 +1209,16 @@ def subir(departamento, ceco):
         if not allowed_file(filename):
                 return 'Tipo de archivo no permitido',400
         try:
-                query = text("""SELECT DISTINCT 'P:\\UPLOAD\\' + [Departamento] + '\\' + [Ceco] AS Path FROM [DBBI].[dbo].[CierreSucursales4] WHERE [Ceco]=:ceco AND Departamento=:departamento""")
+                query = text("""SELECT 1 FROM [DBBI].[dbo].[CierreSucursales4] WHERE [Ceco]=:ceco AND Departamento=:departamento""")
                 with db.engine.connect() as connection:
                         resultados = connection.execute(query,{ 'ceco': ceco,'departamento': departamento}).fetchall()
                 if not resultados:
                         return 'No se encontró una ruta válida en la base de datos',400
-                folder_path = resultados[0][0].strip()
-                if not os.path.exists(folder_path): os.makedirs(folder_path)
+                base_path = app.config.get('UPLOAD_BASE_PATH')
+                if not os.path.exists(base_path):
+                        return jsonify({'error': f'La ruta base no existe: {base_path}'}),500
+                folder_path = os.path.join(base_path, departamento, ceco)
+                os.makedirs(folder_path, exist_ok=True)
                 archivo.save(os.path.join(folder_path, filename))
                 return redirect(url_for('adjuntos', departamento=departamento, ceco=ceco))
         except Exception as e:
@@ -1215,19 +1227,29 @@ def subir(departamento, ceco):
 @app.route('/PDF/<departamento>/<ceco>', methods=['POST'])
 @login_required
 def generar_pdf(departamento, ceco):
-	try:
-		scripts = [
-			('P:/CierreFarmacias/Scripts/python.exe','P:/CierreFarmacias/PDF7_Traspaso.py',departamento,ceco),
-			('P:/CierreFarmacias/Scripts/python.exe','P:/CierreFarmacias/PDF_BAJA.py',departamento,ceco),
-			('P:/CierreFarmacias/Scripts/python.exe','P:/CierreFarmacias/PDF_Tecnico.py',departamento,ceco),
-			('P:/CierreFarmacias/Scripts/python.exe','P:/CierreFarmacias/pdf_Recoleccion.py',departamento,ceco)
-		]
-		for script in scripts:
-			result = subprocess.run(script, capture_output=True, text=True)
-			if result.returncode != 0: raise Exception(result.stderr)
-		return jsonify({'success':True,'message':'PDFs generados correctamente'}),200
-	except Exception as e:
-		return jsonify({'success':False,'error': str(e)}),500
+        try:
+                base_path = app.config.get('SCRIPT_BASE_PATH')
+                if not os.path.exists(base_path):
+                        return jsonify({'success':False,'error': f'La ruta base no existe: {base_path}'}),500
+                python_path = os.path.join(base_path, 'Scripts', 'python.exe')
+                scripts = [
+                        (python_path, os.path.join(base_path, 'PDF7_Traspaso.py'), departamento, ceco),
+                        (python_path, os.path.join(base_path, 'PDF_BAJA.py'), departamento, ceco),
+                        (python_path, os.path.join(base_path, 'PDF_Tecnico.py'), departamento, ceco),
+                        (python_path, os.path.join(base_path, 'pdf_Recoleccion.py'), departamento, ceco)
+                ]
+                if not os.path.exists(python_path):
+                        return jsonify({'success':False,'error': f'No se encontró el ejecutable: {python_path}'}),500
+                for _, script_path, _, _ in scripts:
+                        if not os.path.exists(script_path):
+                                return jsonify({'success':False,'error': f'No se encontró el script: {script_path}'}),500
+                for cmd in scripts:
+                        result = subprocess.run(cmd, capture_output=True, text=True)
+                        if result.returncode != 0:
+                                raise Exception(result.stderr)
+                return jsonify({'success':True,'message':'PDFs generados correctamente'}),200
+        except Exception as e:
+                return jsonify({'success':False,'error': str(e)}),500
 
 # ----- Portal de accesos -----
 @app.route('/accesos', methods=['GET','POST'])
