@@ -151,7 +151,7 @@
                 
                 // Enviar datos mediante AJAX
                 $.ajax({
-                    url: "{{ url_for('actualizar_usuario') }}",
+                    url: "#",
                     type: "POST",
                     data: formData,
                     success: function(response) {
@@ -219,7 +219,7 @@
                     if (result.isConfirmed) {
                         // Enviar solicitud de eliminación
                         $.ajax({
-                            url: "{{ url_for('eliminar_usuario') }}",
+                            url: "#",
                             type: "POST",
                             data: { id: id },
                             success: function(response) {

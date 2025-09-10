@@ -33,7 +33,7 @@
                                 Bienvenido, {{ nombre }}
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
-                                <li><a class="dropdown-item" href="{{ url_for('logout') }}">Cerrar Sesión</a></li>
+                                <li><a class="dropdown-item" href="{{ url_for('auth.logout') }}">Cerrar Sesión</a></li>
                             </ul>
                         </li>
                     </ul>
@@ -145,7 +145,7 @@
                                     <div class="card-body">
                                         <h5 class="card-title"><i class="fas fa-tasks"></i>Cierre Farmacias</h5>
                                         <p class="card-text">Consultar Cierre Farmacias</p>
-                                        <a href="{{ url_for('aplicacion') }}" class="btn btn-light">App Cierre Farmacias</a>
+                                        <a href="#" class="btn btn-light">App Cierre Farmacias</a>
                                     </div>
                                 </div>
                             </div>
@@ -154,7 +154,7 @@
                                     <div class="card-body">
                                         <h5 class="card-title"><i class="fas fa-file-upload"></i> Subir nuevo archivo Excel</h5>
                                         <p class="card-text">Cargar un nuevo archivo Excel con datos</p>
-                                        <a href="{{ url_for('upload_file') }}" class="btn btn-light">Subir archivo</a>
+                                        <a href="{{ url_for('uploads.upload_file') }}" class="btn btn-light">Subir archivo</a>
                                     </div>
                                 </div>
                             </div>
@@ -163,7 +163,7 @@
                                     <div class="card-body">
                                          <h5 class="card-title"><i class="fas fa-boxes"></i> Registro de Accesos</h5>
                                                      <p class="card-text">Administrar Accesos</p>
-                                                     <a href="{{ url_for('accesos') }}" class="btn btn-light">Accesos</a>
+                                                     <a href="{{ url_for('admin.gestionar_accesos') }}" class="btn btn-light">Accesos</a>
                                     </div>
                                 </div>
                             </div>
@@ -174,7 +174,7 @@
                                     <div class="card-body">
                                         <h5 class="card-title"><i class="fas fa-clipboard-list"></i> Órdenes</h5>
                                         <p class="card-text">Gestionar y consultar órdenes</p>
-                                        <a href="{{ url_for('ordenes') }}" class="btn btn-light">Ver órdenes</a>
+                                        <a href="#" class="btn btn-light">Ver órdenes</a>
                                     </div>
                                 
                                 </div>
@@ -191,7 +191,7 @@
                                     <div class="card-body">
                                         <h5 class="card-title"><i class="fas fa-boxes"></i> Activos</h5>
                                         <p class="card-text">Gestionar y consultar activos</p>
-                                        <a href="{{ url_for('activos') }}" class="btn btn-light">Ver activos</a>
+                                        <a href="#" class="btn btn-light">Ver activos</a>
                                         
                                                                                
                                     </div>
@@ -204,7 +204,7 @@
                                     <div class="card-body">
                                        <h5 class="card-title"><i class="fas fa-tasks"></i> Subórdenes</h5>
                                         <p class="card-text">Gestionar y consultar subórdenes</p>
-                                        <a href="{{ url_for('subordenes') }}" class="btn btn-light">Ver subórdenes</a>
+                                        <a href="#" class="btn btn-light">Ver subórdenes</a>
                                     </div>
                                 </div>
                             </div>
@@ -214,7 +214,7 @@
                                     <div class="card-body">
                                         <h5 class="card-title"><i class="fas fa-clipboard-list"></i> Accesos</h5>
                                         <p class="card-text">Gestionar y consultar Accesos</p>
-                                        <a href="{{ url_for('lista_usuarios') }}" class="btn btn-light">Edicion</a>
+                                        <a href="{{ url_for('admin.listar_usuarios') }}" class="btn btn-light">Edicion</a>
                                     </div>
                                 </div>
                             </div>
@@ -224,7 +224,7 @@
                                     <div class="card-body">
                                         <h5 class="card-title"><i class="fas fa-boxes"></i> Firmas Seguridad-Gerencia</h5>
                                         <p class="card-text">Administrar Firmas</p>
-                                        <a href="{{ url_for('lista_Seguridad_Gerencias') }}" class="btn btn-light">Edicion</a>
+                                        <a href="#" class="btn btn-light">Edicion</a>
                                     </div>
                                 </div>
                             </div>
@@ -234,7 +234,7 @@
                                     <div class="card-body">
                                         <h5 class="card-title"><i class="fas fa-boxes"></i> Mapa Aplicación</h5>
                                         <p class="card-text">Tour</p>
-                                        <a href="{{ url_for('mostrar_presentacion') }}" class="btn btn-light">Ver Mapa</a>
+                                        <a href="#" class="btn btn-light">Ver Mapa</a>
                                     </div>
                                 </div>
                             </div>

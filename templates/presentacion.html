@@ -187,13 +187,13 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('dashboard') }}">Inicio</a>
+                        <a class="nav-link" href="{{ url_for('auth.dashboard') }}">Inicio</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link active" href="{{ url_for('aplicacion') }}">App Cierre Farmacias</a>
+                        <a class="nav-link active" href="#">App Cierre Farmacias</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link active" href="{{ url_for('upload_file') }}">Subir archivo</a>
+                        <a class="nav-link active" href="{{ url_for('uploads.upload_file') }}">Subir archivo</a>
                     </li>
                 </ul>
                 <ul class="navbar-nav">
@@ -202,7 +202,7 @@
                             Bienvenido, {{ nombre }}
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
-                            <li><a class="dropdown-item" href="{{ url_for('logout') }}">Cerrar Sesión</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('auth.logout') }}">Cerrar Sesión</a></li>
                         </ul>
                     </li>
                 </ul>
