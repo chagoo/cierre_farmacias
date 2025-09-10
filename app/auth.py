@@ -7,6 +7,7 @@ from flask import (
     url_for,
     flash,
     session,
+    jsonify,
 )
 from sqlalchemy import text
 from werkzeug.security import check_password_hash
@@ -144,4 +145,31 @@ def dashboard():
         return render_template("dashboard2.html")
     flash("Acceso no autorizado", "danger")
     return redirect(url_for("auth.login"))
+
+
+@auth_bp.route("/data")
+def chart_data():
+    """Devuelve datos agregados para los gráficos del dashboard.
+
+    Intenta replicar la lógica del sistema original consultando la base de
+    datos. Si ocurre algún problema (por ejemplo, falta de conexión a la BD),
+    se devuelve un dataset vacío para evitar errores en la interfaz.
+    """
+    query = text(
+        """
+        SELECT Departamento, SUM(cont) AS cont, Accion FROM (
+            SELECT Departamento, Accion, COUNT(*) AS cont
+            FROM DBBI.dbo.CierreSucursales4
+            WHERE Departamento <> 'BAJA DIRECTA'
+            GROUP BY Departamento, Accion
+        ) AS subquery
+        GROUP BY Departamento, Accion
+        """
+    )
+    try:
+        result = db.session.execute(query)
+        data = [["Departamento", "Cantidad", "Accion"]] + [list(row) for row in result]
+    except Exception:
+        data = [["Departamento", "Cantidad", "Accion"]]
+    return jsonify(data)
 
