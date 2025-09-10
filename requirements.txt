@@ -1,0 +1,10 @@
+Flask
+Flask-SQLAlchemy
+SQLAlchemy
+numpy>=2.2.0,<2.3
+pandas==2.2.2
+pyodbc
+weasyprint
+openpyxl
+python-dotenv
+Pillow
