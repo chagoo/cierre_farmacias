@@ -25,19 +25,19 @@ import csv
 import secrets
 import string
 
-REQUIRED_ENV_VARS = ['DB_SERVER','DB_NAME','DB_USER','APP_SECRET_KEY']
+REQUIRED_ENV_VARS = ['DB_SERVER', 'DB_NAME', 'DB_USER', 'DB_PASSWORD', 'APP_SECRET_KEY']
 missing = [v for v in REQUIRED_ENV_VARS if not os.getenv(v)]
 if missing:
-	print(f"[WARN] Variables de entorno faltantes: {', '.join(missing)}. Usando defaults inseguros donde aplique.")
+        raise RuntimeError(f"Faltan variables de entorno obligatorias: {', '.join(missing)}")
 
 app = Flask(__name__)
-app.secret_key = os.getenv('APP_SECRET_KEY', 'change_me_dev')  # Necesaria para las sesiones
+app.secret_key = os.getenv('APP_SECRET_KEY')  # Necesaria para las sesiones
 
 # Configuración de la base de datos vía variables de entorno
-DB_SERVER = os.getenv('DB_SERVER', 'MPWPAS01')
-DB_NAME = os.getenv('DB_NAME', 'DBBI')
-DB_USER = os.getenv('DB_USER', 'AlertDBBI')
-DB_PASSWORD = os.getenv('DB_PASSWORD', '')  # Evitar dejar password real por defecto
+DB_SERVER = os.getenv('DB_SERVER')
+DB_NAME = os.getenv('DB_NAME')
+DB_USER = os.getenv('DB_USER')
+DB_PASSWORD = os.getenv('DB_PASSWORD')
 
 UPLOAD_FOLDER = 'uploads'
 ALLOWED_EXTENSIONS = {'xlsx', 'xls'}
