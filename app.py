@@ -1,7 +1,7 @@
 """Punto de entrada principal de la aplicación Flask.
 
-Este archivo importa la app original (módulo con todas las rutas) desde
-`UploadExcel_GR.py` (alias del original) y expone un entrypoint estándar (`python app.py`).
+Este archivo ahora utiliza la factoría ``create_app`` del paquete ``app``
+para inicializar la aplicación y ejecutar el servidor.
 
 Para activar debug temporalmente:
   Windows PowerShell:  $env:FLASK_DEBUG="1"; python app.py
@@ -13,7 +13,7 @@ from dotenv import load_dotenv
 # Cargar variables desde .env si existe
 load_dotenv()
 
-from UploadExcel_GR import app  # noqa: F401
+from app import create_app
 
 
 def main():
@@ -23,7 +23,8 @@ def main():
     except ValueError:
         port = 5020
     debug_env = os.getenv('FLASK_DEBUG', '').lower() in ('1', 'true', 'yes', 'on')
-    # Reutilizamos la variable global app importada
+
+    app = create_app()
     app.run(debug=debug_env, port=port, host=host, use_reloader=debug_env)
 
 
