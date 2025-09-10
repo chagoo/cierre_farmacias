@@ -7,18 +7,18 @@
     <div class="collapse navbar-collapse" id="navbarNav">
       <ul class="navbar-nav me-auto">
         <li class="nav-item">
-          <a class="nav-link {% if active_page=='inicio' %}active{% endif %}" href="{{ url_for('dashboard') }}">Inicio</a>
+          <a class="nav-link {% if active_page=='inicio' %}active{% endif %}" href="{{ url_for('auth.dashboard') }}">Inicio</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link {% if active_page=='accesos' %}active{% endif %}" href="{{ url_for('accesos') }}">Accesos</a>
+          <a class="nav-link {% if active_page=='accesos' %}active{% endif %}" href="{{ url_for('admin.gestionar_accesos') }}">Accesos</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link {% if active_page=='usuarios' %}active{% endif %}" href="{{ url_for('lista_usuarios') }}">Lista de Usuarios</a>
+          <a class="nav-link {% if active_page=='usuarios' %}active{% endif %}" href="{{ url_for('admin.listar_usuarios') }}">Lista de Usuarios</a>
         </li>
       </ul>
       <ul class="navbar-nav">
         <li class="nav-item">
-          <a class="nav-link" href="{{ url_for('logout') }}">Cerrar Sesión</a>
+          <a class="nav-link" href="{{ url_for('auth.logout') }}">Cerrar Sesión</a>
         </li>
       </ul>
     </div>
