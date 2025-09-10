@@ -19,6 +19,7 @@ from email.mime.text import MIMEText
 import logging
 from logging.handlers import RotatingFileHandler
 from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.utils import secure_filename
 import hashlib
 import re
 import csv
@@ -1190,23 +1191,26 @@ def descargar(departamento, ceco, filename):
 @app.route('/subir/<departamento>/<ceco>', methods=['POST'])
 @login_required
 def subir(departamento, ceco):
-	if 'archivo' not in request.files:
-		return 'No file part',400
-	archivo = request.files['archivo']
-	if archivo.filename == '':
-		return 'No selected file',400
-	try:
-		query = text("""SELECT DISTINCT 'P:\\UPLOAD\\' + [Departamento] + '\\' + [Ceco] AS Path FROM [DBBI].[dbo].[CierreSucursales4] WHERE [Ceco]=:ceco AND Departamento=:departamento""")
-		with db.engine.connect() as connection:
-			resultados = connection.execute(query,{ 'ceco': ceco,'departamento': departamento}).fetchall()
-		if not resultados:
-			return 'No se encontró una ruta válida en la base de datos',400
-		folder_path = resultados[0][0].strip()
-		if not os.path.exists(folder_path): os.makedirs(folder_path)
-		archivo.save(os.path.join(folder_path, archivo.filename))
-		return redirect(url_for('adjuntos', departamento=departamento, ceco=ceco))
-	except Exception as e:
-		return jsonify({'error': str(e)}),500
+        if 'archivo' not in request.files:
+                return 'No file part',400
+        archivo = request.files['archivo']
+        if archivo.filename == '':
+                return 'No selected file',400
+        filename = secure_filename(archivo.filename)
+        if not allowed_file(filename):
+                return 'Tipo de archivo no permitido',400
+        try:
+                query = text("""SELECT DISTINCT 'P:\\UPLOAD\\' + [Departamento] + '\\' + [Ceco] AS Path FROM [DBBI].[dbo].[CierreSucursales4] WHERE [Ceco]=:ceco AND Departamento=:departamento""")
+                with db.engine.connect() as connection:
+                        resultados = connection.execute(query,{ 'ceco': ceco,'departamento': departamento}).fetchall()
+                if not resultados:
+                        return 'No se encontró una ruta válida en la base de datos',400
+                folder_path = resultados[0][0].strip()
+                if not os.path.exists(folder_path): os.makedirs(folder_path)
+                archivo.save(os.path.join(folder_path, filename))
+                return redirect(url_for('adjuntos', departamento=departamento, ceco=ceco))
+        except Exception as e:
+                return jsonify({'error': str(e)}),500
 
 @app.route('/PDF/<departamento>/<ceco>', methods=['POST'])
 @login_required
